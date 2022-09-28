@@ -1,52 +1,94 @@
 ﻿@page "/fetchdata"
-@using BlazorApp.Shared 
 @inject HttpClient Http
 
-<h1>Weather forecast</h1>
+<PageTitle>Today's Specials</PageTitle>
 
-<p>This component demonstrates fetching data from the server.</p>
+<h1>Today's Specials</h1>
 
-@if (forecasts == null)
+<p>Here are your specials for @DateTime.Today.ToShortDateString()</p>
+
+@if (items == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var item in items)
+        {
+            <div class="col">
+                <div class="card" style="width: 18rem;">
+                    <img src='@("https://myrestaurantweb.blob.core.windows.net/menu/" + @item.Image)' class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Title</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <a href="#" class="btn btn-primary">@item.Price</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+
 }
 
 @code {
-    private WeatherForecast[] forecasts = new WeatherForecast[]{};
+    private Item[]? items;
 
     protected override async Task OnInitializedAsync()
     {
-        try
+        //items = await Http.GetFromJsonAsync<Item[]>("https://localhost:7168/api/item");
+        items = GetItems();
+    }
+
+    public class Item
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; }
+
+        public int Quantity { get; set; }
+
+        public string Image { get; set; }
+
+        public double Price { get; set; }
+
+        public ItemCategory Category { get; set; }
+
+        public double SubTotal
         {
-            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("/api/WeatherForecast") ?? new WeatherForecast[]{};
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
+            get
+            {
+                return Price * Quantity;
+            }
         }
     }
+
+    public enum ItemCategory
+    {
+        Noodles = 1,
+        Rice = 2,
+        Appetizers = 3,
+        Desserts = 4,
+        Beverages = 5
+    }
+
+    public Item[] GetItems()
+    {
+        return Items.ToArray();
+    }
+
+    public static List<Item> Items = new List<Item>
+    {
+        new Item(){ Title = "Japchae", Price    = 13.99, Quantity = 1, Image = "japchae.png", Category = ItemCategory.Noodles},
+        new Item(){ Title = "Jajangmyeon", Price = 14.99, Quantity = 1, Image = "jajangmyeon.png", Category = ItemCategory.Noodles},
+        new Item(){ Title = "Janchi Guksu", Price = 12.99, Quantity = 1, Image = "janchi_guksu.png", Category = ItemCategory.Noodles},
+        new Item(){ Title = "Budae Jjigae", Price = 14.99, Quantity = 1, Image = "budae_jjigae.png", Category = ItemCategory.Noodles},
+        new Item(){ Title = "Naengmyeon", Price = 12.99, Quantity = 1, Image = "naengmyeon.png", Category = ItemCategory.Noodles},
+        new Item(){ Title = "Soda", Price = 2.50, Quantity = 1, Category = ItemCategory.Beverages, Image = "soda.png"},
+        new Item(){ Title = "Iced Tea", Price = 3.50, Quantity = 1, Category = ItemCategory.Beverages, Image = "iced_tea.png"},
+        new Item(){ Title = "Hot Tea", Price = 4.00, Quantity = 1, Category = ItemCategory.Beverages, Image = "tea.png"},
+        new Item(){ Title = "Coffee", Price = 4.00, Quantity = 1, Category = ItemCategory.Beverages, Image = "coffee.png"},
+        new Item(){ Title = "Milk", Price = 5.00, Quantity = 1, Category = ItemCategory.Beverages, Image = "milk.png"},
+    };
 }
